@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Source Serif 4", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --color-canvas: #F6F8F7;
+  --color-surface: #FFFFFF;
+  --color-primary-teal: #0F766E;
+  --color-primary-teal-hover: #0D655E;
+  --color-primary-teal-light: #E8F0EE;
+  --color-main-text: #0B1F33;
+  --color-muted-text: #475569;
+  --color-card-border: #D5DCE0;
+  --color-control-border: #64748B;
+  --color-status-success: #15803D;
+  --color-status-pending: #B45309;
+  --color-status-closed: #64748B;
+  --color-alert-red: #D92D20;
+}
+
+:root {
+  --bg: #F6F8F7;
+  --sf: #FFFFFF;
+  --pri: #0F766E;
+  --tx: #0B1F33;
+  --mu: #475569;
+  --bd: #D5DCE0;
+  --ct: #64748B;
+  --em: #D92D20;
+  --r1: #F7EFE5;
+  --r2: #EBCDB1;
+  --r3: #D9996B;
+  --r4: #B8613A;
+  --r5: #7F3420;
+  --nd: #E5E7EB;
+  font-family: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+body {
+  margin: 0;
+  background-color: #F6F8F7;
+  color: #0B1F33;
+  font-family: "Public Sans", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-serif {
+  font-family: "Source Serif 4", Georgia, serif;
+}
+
+/* Tabular figures for all numerical values */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Custom District Centroid Labels & Badges in Leaflet */
+.leaflet-tooltip.district-centroid-label {
+  background-color: rgba(255, 255, 255, 0.90) !important;
+  border: 1px solid #D5DCE0 !important;
+  border-radius: 4px !important;
+  color: #0B1F33 !important;
+  font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 12px !important; /* text-xs */
+  font-weight: 600 !important; /* font-semibold */
+  line-height: 1rem !important;
+  padding: 2px 6px !important; /* py-0.5 px-1.5 */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important; /* shadow-xs */
+  pointer-events: none !important;
+  white-space: nowrap !important;
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out;
+  user-select: none;
+}
+
+.leaflet-tooltip.district-centroid-label::before {
+  display: none !important;
+}
+
+/* Hide labels when zoomed out at the national level to avoid visual clutter */
+.zoom-national-level .district-centroid-label {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* When a district is active / selected, highlight the centroid badge */
+.leaflet-tooltip.district-centroid-label-active {
+  background-color: #0F766E !important;
+  border-color: #0F766E !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.35) !important;
+  z-index: 1000 !important;
+}
+
+/* Selected district boundary highlight with crisp drop shadow */
+path.district-boundary-selected {
+  stroke-dasharray: none !important;
+  filter: drop-shadow(0 0 4px rgba(15, 118, 110, 0.65));
+}
+

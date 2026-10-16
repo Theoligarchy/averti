@@ -1,0 +1,380 @@
+{
+  "year": "2024",
+  "note": "NCRB, Crime in India 2024. Table 1A.3 (Total IPC/BNS & SLL Crimes). Rates are per 1 lakh population using 2024 projected population. 2024 mixes IPC and BNS cases, so compare years with care.",
+  "measures": {
+    "total": {
+      "label": "All registered cases (IPC/BNS + SLL)",
+      "denominator": "per 1 lakh population",
+      "source": "National Crime Records Bureau (NCRB), Crime in India 2024, Volume I, Table 1A.3: State/UT-wise Total IPC/BNS & SLL Crimes",
+      "allIndia": {
+        "c2022": 5824946,
+        "c2023": 6241569,
+        "c2024": 5885867,
+        "rate": 418.9,
+        "population": 1405000000
+      }
+    }
+  },
+  "states": {
+    "Andaman and Nicobar Islands": {
+      "total": {
+        "c2022": 1589,
+        "c2023": 1873,
+        "c2024": 1697,
+        "rate": 420,
+        "population": 404000,
+        "code": "AN"
+      }
+    },
+    "Andhra Pradesh": {
+      "total": {
+        "c2022": 195284,
+        "c2023": 184293,
+        "c2024": 168788,
+        "rate": 316.1,
+        "population": 53400000,
+        "code": "AP"
+      }
+    },
+    "Arunachal Pradesh": {
+      "total": {
+        "c2022": 2761,
+        "c2023": 2941,
+        "c2024": 2910,
+        "rate": 184.2,
+        "population": 1580000,
+        "code": "AR"
+      }
+    },
+    "Assam": {
+      "total": {
+        "c2022": 68937,
+        "c2023": 64959,
+        "c2024": 49552,
+        "rate": 137,
+        "population": 36170000,
+        "code": "AS"
+      }
+    },
+    "Bihar": {
+      "total": {
+        "c2022": 347835,
+        "c2023": 353502,
+        "c2024": 352155,
+        "rate": 272.6,
+        "population": 129180000,
+        "code": "BR"
+      }
+    },
+    "Chandigarh": {
+      "total": {
+        "c2022": 3658,
+        "c2023": 4185,
+        "c2024": 4069,
+        "rate": 326.3,
+        "population": 1247000,
+        "code": "CH"
+      }
+    },
+    "Chhattisgarh": {
+      "total": {
+        "c2022": 121065,
+        "c2023": 115493,
+        "c2024": 114658,
+        "rate": 374.2,
+        "population": 30640000,
+        "code": "CG"
+      }
+    },
+    "Dadra and Nagar Haveli and Daman and Diu": {
+      "total": {
+        "c2022": 1273,
+        "c2023": 865,
+        "c2024": 592,
+        "rate": 42.7,
+        "population": 1386000,
+        "code": "DH"
+      }
+    },
+    "Delhi": {
+      "total": {
+        "c2022": 320274,
+        "c2023": 344263,
+        "c2024": 297666,
+        "rate": 1360.2,
+        "population": 21880000,
+        "code": "DL"
+      }
+    },
+    "Goa": {
+      "total": {
+        "c2022": 3679,
+        "c2023": 3082,
+        "c2024": 3297,
+        "rate": 208,
+        "population": 1585000,
+        "code": "GA"
+      }
+    },
+    "Gujarat": {
+      "total": {
+        "c2022": 524103,
+        "c2023": 578879,
+        "c2024": 615407,
+        "rate": 847,
+        "population": 72660000,
+        "code": "GJ"
+      }
+    },
+    "Haryana": {
+      "total": {
+        "c2022": 242849,
+        "c2023": 224216,
+        "c2024": 177595,
+        "rate": 578.6,
+        "population": 30690000,
+        "code": "HR"
+      }
+    },
+    "Himachal Pradesh": {
+      "total": {
+        "c2022": 19053,
+        "c2023": 19987,
+        "c2024": 17915,
+        "rate": 238.3,
+        "population": 7518000,
+        "code": "HP"
+      }
+    },
+    "Jammu and Kashmir": {
+      "total": {
+        "c2022": 30197,
+        "c2023": 29595,
+        "c2024": 26362,
+        "rate": 192,
+        "population": 13730000,
+        "code": "JK"
+      }
+    },
+    "Jharkhand": {
+      "total": {
+        "c2022": 64359,
+        "c2023": 63838,
+        "c2024": 60999,
+        "rate": 152,
+        "population": 40130000,
+        "code": "JH"
+      }
+    },
+    "Karnataka": {
+      "total": {
+        "c2022": 180742,
+        "c2023": 214234,
+        "c2024": 198331,
+        "rate": 290.6,
+        "population": 68250000,
+        "code": "KA"
+      }
+    },
+    "Kerala": {
+      "total": {
+        "c2022": 454836,
+        "c2023": 584373,
+        "c2024": 499567,
+        "rate": 1389,
+        "population": 35970000,
+        "code": "KL"
+      }
+    },
+    "Ladakh": {
+      "total": {
+        "c2022": 478,
+        "c2023": 522,
+        "c2024": 541,
+        "rate": 179.1,
+        "population": 302000,
+        "code": "LA"
+      }
+    },
+    "Lakshadweep": {
+      "total": {
+        "c2022": 97,
+        "c2023": 127,
+        "c2024": 84,
+        "rate": 121.7,
+        "population": 69000,
+        "code": "LD"
+      }
+    },
+    "Madhya Pradesh": {
+      "total": {
+        "c2022": 488966,
+        "c2023": 495708,
+        "c2024": 434879,
+        "rate": 494.4,
+        "population": 87960000,
+        "code": "MP"
+      }
+    },
+    "Maharashtra": {
+      "total": {
+        "c2022": 557012,
+        "c2023": 596103,
+        "c2024": 609823,
+        "rate": 477.6,
+        "population": 127680000,
+        "code": "MH"
+      }
+    },
+    "Manipur": {
+      "total": {
+        "c2022": 3914,
+        "c2023": 20283,
+        "c2024": 5284,
+        "rate": 162.1,
+        "population": 3260000,
+        "code": "MN"
+      }
+    },
+    "Meghalaya": {
+      "total": {
+        "c2022": 3625,
+        "c2023": 3532,
+        "c2024": 3986,
+        "rate": 117.7,
+        "population": 3386000,
+        "code": "ML"
+      }
+    },
+    "Mizoram": {
+      "total": {
+        "c2022": 4133,
+        "c2023": 4050,
+        "c2024": 3552,
+        "rate": 283.7,
+        "population": 1252000,
+        "code": "MZ"
+      }
+    },
+    "Nagaland": {
+      "total": {
+        "c2022": 1592,
+        "c2023": 1899,
+        "c2024": 1392,
+        "rate": 61.6,
+        "population": 2260000,
+        "code": "NL"
+      }
+    },
+    "Odisha": {
+      "total": {
+        "c2022": 178190,
+        "c2023": 199954,
+        "c2024": 214113,
+        "rate": 458.8,
+        "population": 46670000,
+        "code": "OR"
+      }
+    },
+    "Puducherry": {
+      "total": {
+        "c2022": 4558,
+        "c2023": 5065,
+        "c2024": 5498,
+        "rate": 324.4,
+        "population": 1695000,
+        "code": "PY"
+      }
+    },
+    "Punjab": {
+      "total": {
+        "c2022": 73625,
+        "c2023": 69944,
+        "c2024": 68955,
+        "rate": 222.5,
+        "population": 30990000,
+        "code": "PB"
+      }
+    },
+    "Rajasthan": {
+      "total": {
+        "c2022": 312804,
+        "c2023": 317480,
+        "c2024": 297552,
+        "rate": 362,
+        "population": 82200000,
+        "code": "RJ"
+      }
+    },
+    "Sikkim": {
+      "total": {
+        "c2022": 819,
+        "c2023": 718,
+        "c2024": 691,
+        "rate": 99.1,
+        "population": 697000,
+        "code": "SK"
+      }
+    },
+    "Tamil Nadu": {
+      "total": {
+        "c2022": 473456,
+        "c2023": 539651,
+        "c2024": 505754,
+        "rate": 655.4,
+        "population": 77170000,
+        "code": "TN"
+      }
+    },
+    "Telangana": {
+      "total": {
+        "c2022": 165830,
+        "c2023": 183644,
+        "c2024": 217976,
+        "rate": 568.9,
+        "population": 38320000,
+        "code": "TS"
+      }
+    },
+    "Tripura": {
+      "total": {
+        "c2022": 4532,
+        "c2023": 5002,
+        "c2024": 4033,
+        "rate": 96.2,
+        "population": 4192000,
+        "code": "TR"
+      }
+    },
+    "Uttar Pradesh": {
+      "total": {
+        "c2022": 753675,
+        "c2023": 793020,
+        "c2024": 708399,
+        "rate": 296.6,
+        "population": 238840000,
+        "code": "UP"
+      }
+    },
+    "Uttarakhand": {
+      "total": {
+        "c2022": 34607,
+        "c2023": 34017,
+        "c2024": 31024,
+        "rate": 263,
+        "population": 11796000,
+        "code": "UK"
+      }
+    },
+    "West Bengal": {
+      "total": {
+        "c2022": 180539,
+        "c2023": 180272,
+        "c2024": 180771,
+        "rate": 181.3,
+        "population": 99710000,
+        "code": "WB"
+      }
+    }
+  }
+}

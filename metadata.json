@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Remix Averti - Indian Public-Safety Atlas",
+  "description": "An independent, data-driven Indian public-safety information platform presenting verified state-wise crime statistics, official notices, and emergency assistance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
