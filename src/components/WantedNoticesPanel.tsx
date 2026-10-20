@@ -9,19 +9,22 @@ import {
   Building2,
   Gift
 } from 'lucide-react';
+import { WantedNoticesPanelSkeleton } from './Skeletons';
 
 interface WantedNoticesPanelProps {
   notices: Notice[];
   selectedState: string | null;
   onSelectNotice: (notice: Notice) => void;
   onViewAllWanted?: () => void;
+  isLoading?: boolean;
 }
 
 export const WantedNoticesPanel: React.FC<WantedNoticesPanelProps> = ({
   notices,
   selectedState,
   onSelectNotice,
-  onViewAllWanted
+  onViewAllWanted,
+  isLoading = false
 }) => {
   const [searchTerm] = useState('');
 
@@ -62,6 +65,10 @@ export const WantedNoticesPanel: React.FC<WantedNoticesPanelProps> = ({
       return dateStr;
     }
   };
+
+  if (isLoading) {
+    return <WantedNoticesPanelSkeleton />;
+  }
 
   return (
     <div className="flex flex-col bg-white rounded-lg border border-[#D5DCE0] shadow-xs mt-4">

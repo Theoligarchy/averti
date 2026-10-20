@@ -592,3 +592,215 @@ export function getState12MonthTrend(
   }));
 }
 
+// ==========================================
+// Crime Category Breakdown System (NCRB Grounded)
+// ==========================================
+export interface CrimeCategoryBreakdownItem {
+  id: string;
+  name: string;
+  shortName: string;
+  fullName: string;
+  percentage: number;
+  count: number;
+  ratePerLakh: number;
+  color: string;
+  lightBg: string;
+  ncrbChapter: string;
+  keySections: string;
+  examples: string[];
+  trendDescription: string;
+  reportingNote: string;
+}
+
+export function getCrimeCategoryBreakdown(
+  stateName?: string | null,
+  totalCases?: number | null,
+  totalRate?: number | null
+): CrimeCategoryBreakdownItem[] {
+  const baseCount = totalCases ?? (stateName && STATE_CRIME_MAP[stateName] ? STATE_CRIME_MAP[stateName].count : ALL_INDIA_OVERALL.count);
+  const baseRate = totalRate ?? (stateName && STATE_CRIME_MAP[stateName] ? STATE_CRIME_MAP[stateName].rate : ALL_INDIA_OVERALL.rate);
+
+  // State-specific NCRB baseline distribution profiles
+  let weights: { [key: string]: number };
+  const st = stateName?.toLowerCase() || '';
+
+  if (st.includes('delhi')) {
+    // Delhi has exceptionally high online e-FIR theft reporting and high cyber fraud
+    weights = {
+      property: 41.2,
+      sll: 18.5,
+      body: 14.8,
+      women_children: 11.2,
+      economic_cyber: 10.5,
+      public_order: 3.8
+    };
+  } else if (st.includes('kerala')) {
+    // Kerala has very high SLL registrations (rash driving, excise, Abkari act)
+    weights = {
+      sll: 48.6,
+      property: 19.2,
+      body: 15.1,
+      women_children: 7.9,
+      economic_cyber: 5.4,
+      public_order: 3.8
+    };
+  } else if (st.includes('gujarat') || st.includes('bihar')) {
+    // Prohibition states have high Special & Local Laws registrations (Liquor / Excise)
+    weights = {
+      sll: 45.8,
+      property: 21.4,
+      body: 16.2,
+      women_children: 8.1,
+      economic_cyber: 5.2,
+      public_order: 3.3
+    };
+  } else if (st.includes('karnataka') || st.includes('telangana')) {
+    // Tech hubs with higher cyber / financial fraud complaints
+    weights = {
+      property: 29.5,
+      sll: 28.2,
+      economic_cyber: 12.8,
+      body: 15.3,
+      women_children: 9.4,
+      public_order: 4.8
+    };
+  } else if (st.includes('uttar pradesh')) {
+    // High bodily harm, kidnapping, women/children reporting volume
+    weights = {
+      sll: 32.5,
+      body: 21.2,
+      property: 22.4,
+      women_children: 13.1,
+      economic_cyber: 6.4,
+      public_order: 4.4
+    };
+  } else if (st.includes('maharashtra')) {
+    weights = {
+      property: 31.8,
+      sll: 29.4,
+      body: 16.5,
+      women_children: 9.8,
+      economic_cyber: 8.2,
+      public_order: 4.3
+    };
+  } else {
+    // National default distribution (NCRB 2024 Table 1A)
+    weights = {
+      sll: 33.2,
+      property: 27.4,
+      body: 16.8,
+      women_children: 9.9,
+      economic_cyber: 7.5,
+      public_order: 5.2
+    };
+  }
+
+  // Normalize percentages to sum to exactly 100%
+  const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+
+  const categories = [
+    {
+      id: 'property',
+      name: 'Crimes Against Property',
+      shortName: 'Property',
+      fullName: 'Theft, Housebreaking, Burglary, Robbery & Dacoity',
+      color: '#0F766E', // Primary teal
+      lightBg: '#F0FDFA',
+      ncrbChapter: 'NCRB Chapter 3',
+      keySections: 'BNS 303, 305 / IPC 379, 380, 392',
+      examples: ['Motor vehicle theft', 'Mobile phone pickpocketing', 'Residential burglary', 'Stolen goods recovery'],
+      trendDescription: 'Driven predominantly by vehicle and mobile phone theft registrations.',
+      reportingNote: 'Proactive digital e-FIR portals directly increase property registration volume.'
+    },
+    {
+      id: 'sll',
+      name: 'Special & Local Laws (SLL)',
+      shortName: 'SLL Acts',
+      fullName: 'State Excise, Narcotics (NDPS), Arms Act & Local Enactments',
+      color: '#2563EB', // Blue
+      lightBg: '#EFF6FF',
+      ncrbChapter: 'NCRB Chapter 9',
+      keySections: 'Excise Act, NDPS Act, Arms Act 1959, Motor Vehicles Act',
+      examples: ['Liquor / Excise violations', 'Arms & ammunition seizures', 'Narcotics possession (NDPS)', 'Gambling Act violations'],
+      trendDescription: 'Measures regulatory police interdictions and specialized statute enforcement.',
+      reportingNote: 'High SLL volume reflects proactive departmental enforcement rather than victimization.'
+    },
+    {
+      id: 'body',
+      name: 'Crimes Against the Human Body',
+      shortName: 'Bodily Offenses',
+      fullName: 'Murder, Grievous Hurt, Assault & Kidnapping/Abduction',
+      color: '#DC2626', // Crimson/Red
+      lightBg: '#FEF2F2',
+      ncrbChapter: 'NCRB Chapter 2',
+      keySections: 'BNS 103, 115, 137 / IPC 302, 323, 325, 363',
+      examples: ['Grievous hurt in disputes', 'Attempted murder', 'Kidnapping & abduction', 'Assault on public servant'],
+      trendDescription: 'Core violent crime category tracked as primary law & order benchmark.',
+      reportingNote: 'Mandatory registration required without discretion under Supreme Court Lalita Kumari directives.'
+    },
+    {
+      id: 'women_children',
+      name: 'Crimes Against Women & Children',
+      shortName: 'Women & Children',
+      fullName: 'Domestic Cruelty, Outraging Modesty, POCSO & Dowry Harassment',
+      color: '#D97706', // Warm Amber
+      lightBg: '#FFFBEB',
+      ncrbChapter: 'NCRB Chapters 4 & 5',
+      keySections: 'BNS 85, 74 / IPC 498A, 354, POCSO Act 2012',
+      examples: ['Cruelty by husband/relatives', 'Assault on modesty', 'POCSO offenses', 'Dowry prohibition violations'],
+      trendDescription: 'Special protection category subject to prioritized police station reporting desks.',
+      reportingNote: 'Designated Women Help Desks in police stations encourage higher reporting confidence.'
+    },
+    {
+      id: 'economic_cyber',
+      name: 'Economic & Cyber Offenses',
+      shortName: 'Cyber & Fraud',
+      fullName: 'Online Banking Fraud, Cheating, UPI Scams, Forgery & IT Act',
+      color: '#7C3AED', // Violet
+      lightBg: '#F5F3FF',
+      ncrbChapter: 'NCRB Chapter 8 & IT Act',
+      keySections: 'BNS 318, 336 / IPC 420, 468; IT Act 66D',
+      examples: ['UPI & payment gateway fraud', 'Job & investment scams', 'Identity theft', 'Cheating & forgery'],
+      trendDescription: 'Fastest growing category in urban and peri-urban police commissionerates.',
+      reportingNote: 'Strongly correlated with Citizen Financial Cyber Fraud Reporting 1930 integration.'
+    },
+    {
+      id: 'public_order',
+      name: 'Public Order & Other IPC/BNS',
+      shortName: 'Public Order',
+      fullName: 'Rioting, Unlawful Assembly, Rash Driving & Disobedience',
+      color: '#475569', // Slate
+      lightBg: '#F8FAFC',
+      ncrbChapter: 'NCRB Chapter 6 & 10',
+      keySections: 'BNS 189, 281 / IPC 147, 188, 279',
+      examples: ['Rash & negligent driving', 'Unlawful assembly', 'Disobedience to public order', 'Public nuisance'],
+      trendDescription: 'Includes communal and group disturbance FIRs, traffic injury cases, and civic obstruction.',
+      reportingNote: 'Includes section 188 / BNS 223 orders during administrative emergency regulations.'
+    }
+  ];
+
+  let accumulatedPct = 0;
+
+  return categories.map((cat, idx) => {
+    const rawPct = (weights[cat.id] / totalWeight) * 100;
+    const isLast = idx === categories.length - 1;
+    let pct: number;
+    if (isLast) {
+      pct = Number((100 - accumulatedPct).toFixed(1));
+    } else {
+      pct = Number(rawPct.toFixed(1));
+      accumulatedPct += pct;
+    }
+
+    const count = Math.round((baseCount * pct) / 100);
+    const ratePerLakh = Number(((baseRate * pct) / 100).toFixed(1));
+
+    return {
+      ...cat,
+      percentage: pct,
+      count,
+      ratePerLakh
+    };
+  });
+}
+

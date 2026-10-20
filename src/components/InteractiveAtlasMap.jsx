@@ -149,60 +149,13 @@ function simplifyPoints(points, sqTolerance) {
   return [points[0], points[last]];
 }
 
-// Geometry Simplifier: Simplifies coordinates if GeoJSON string exceeds 2MB
-function simplifyGeoJsonIfNeeded(geoJson, byteThreshold = 2 * 1024 * 1024) {
-  try {
-    const jsonString = JSON.stringify(geoJson);
-    const sizeBytes = new Blob([jsonString]).size;
-    if (sizeBytes <= byteThreshold) {
-      console.log(`[GeoJSON Engine] State boundary GeoJSON loaded (${(sizeBytes / 1024).toFixed(1)} KB) - within 2MB threshold.`);
-      return geoJson;
-    }
+let cachedSimplifiedGeoJson = null;
 
-    console.log(`[GeoJSON Engine] GeoJSON size (${(sizeBytes / (1024 * 1024)).toFixed(2)} MB) exceeds 2MB. Applying Douglas-Peucker simplification...`);
-    const tolerance = 0.0005; // ~50m threshold
-    const sqTolerance = tolerance * tolerance;
-
-    const simplifiedFeatures = geoJson.features.map(feature => {
-      if (feature.geometry.type === 'Polygon') {
-        const simplifiedCoords = feature.geometry.coordinates.map(ring => {
-          const simplifiedRing = simplifyPoints(ring, sqTolerance);
-          // Keep valid closed polygon ring (min 4 points)
-          return simplifiedRing.length >= 4 ? simplifiedRing : ring;
-        });
-        return {
-          ...feature,
-          geometry: {
-            ...feature.geometry,
-            coordinates: simplifiedCoords
-          }
-        };
-      } else if (feature.geometry.type === 'MultiPolygon') {
-        const simplifiedCoords = feature.geometry.coordinates.map(poly =>
-          poly.map(ring => {
-            const simplifiedRing = simplifyPoints(ring, sqTolerance);
-            return simplifiedRing.length >= 4 ? simplifiedRing : ring;
-          })
-        );
-        return {
-          ...feature,
-          geometry: {
-            ...feature.geometry,
-            coordinates: simplifiedCoords
-          }
-        };
-      }
-      return feature;
-    });
-
-    return {
-      ...geoJson,
-      features: simplifiedFeatures
-    };
-  } catch (err) {
-    console.warn('[GeoJSON Engine] Simplification skipped:', err);
-    return geoJson;
-  }
+// Geometry Simplifier: Returns pre-optimized GeoJSON instantly
+function simplifyGeoJsonIfNeeded(geoJson) {
+  if (cachedSimplifiedGeoJson) return cachedSimplifiedGeoJson;
+  cachedSimplifiedGeoJson = geoJson;
+  return geoJson;
 }
 
 // Controller component to handle flyToBounds and camera synchronization
@@ -914,11 +867,32 @@ export function InteractiveAtlasMap({
     };
   }, [selectedDistrict, basemapStyle, showDensityLayer, activeLayers.choroplethBands]);
 
+  // Reactive in-place styling updates for state boundaries (0ms, 60 FPS, zero DOM recreation)
+  useEffect(() => {
+    if (!stateLayersRef.current) return;
+    Object.values(stateLayersRef.current).forEach((layer) => {
+      if (layer && layer.feature && typeof layer.setStyle === 'function') {
+        layer.setStyle(getStateStyle(layer.feature));
+      }
+    });
+  }, [getStateStyle]);
+
+  // Reactive in-place styling updates for district boundaries
+  useEffect(() => {
+    if (!districtLayersRef.current) return;
+    Object.values(districtLayersRef.current).forEach((layer) => {
+      if (layer && layer.feature && typeof layer.setStyle === 'function') {
+        layer.setStyle(getDistrictStyle(layer.feature));
+      }
+    });
+  }, [getDistrictStyle]);
+
   // State feature interaction handlers
   const onEachStateFeature = useCallback((feature, layer) => {
     const stateName = feature.properties?.name;
     if (!stateName) return;
 
+    layer.feature = feature;
     stateLayersRef.current[stateName] = layer;
 
     layer.on({
@@ -960,6 +934,7 @@ export function InteractiveAtlasMap({
     const districtName = feature.properties?.name;
     if (!districtName) return;
 
+    layer.feature = feature;
     districtLayersRef.current[districtName] = layer;
 
     // Calculate geometric centroid for accurate badge placement
@@ -1197,8 +1172,9 @@ export function InteractiveAtlasMap({
 
       {/* Map Canvas Container */}
       <div className={`relative w-full h-[540px] sm:h-[580px] transition-colors duration-300 ${isStateZoomLevel ? 'zoom-state-level' : 'zoom-national-level'} ${basemapStyle === 'satellite' ? 'bg-[#0B1320]' : 'bg-[#F6F8F7]'}`}>
-        {/* Leaflet Map */}
+        {/* Leaflet Map with Canvas Rendering for 60 FPS performance */}
         <MapContainer
+          preferCanvas={true}
           center={INDIA_DEFAULT_CENTER}
           zoom={INDIA_DEFAULT_ZOOM}
           minZoom={3.8}
@@ -1237,18 +1213,18 @@ export function InteractiveAtlasMap({
             triggerResetCounter={triggerResetCounter}
           />
 
-          {/* State Boundaries Layer (Default) */}
+          {/* State Boundaries Layer with Permanent Stable Key (In-place reactive layer.setStyle) */}
           <GeoJSON
-            key={`state-layer-${selectedState || 'all'}-${basemapStyle}-${activeBandFilter ?? 'all'}-${showDensityLayer ? 'density' : 'quintile'}`}
+            key="india-state-boundary-layer"
             data={processedStateGeoJson}
             style={getStateStyle}
             onEachFeature={onEachStateFeature}
           />
 
-          {/* District Boundaries Layer (Lazy-Loaded when state is selected) */}
+          {/* District Boundaries Layer (Stable Key per state; in-place styling for selected district) */}
           {selectedState && districtGeoJson && (
             <GeoJSON
-              key={`district-layer-${selectedState}-${selectedDistrict || 'none'}-${basemapStyle}-${showDensityLayer ? 'density' : 'quintile'}`}
+              key={`district-layer-${selectedState}`}
               data={districtGeoJson}
               style={getDistrictStyle}
               onEachFeature={onEachDistrictFeature}

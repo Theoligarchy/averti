@@ -31,6 +31,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({
             <h1 id="about-title" className="text-2xl font-bold font-serif text-[#0B1F33] mt-1">
               About Averti
             </h1>
+            <p className="text-xs font-medium text-[#0F766E] mt-0.5">
+              made by Priyash Priyal Jena
+            </p>
           </div>
 
           <button
@@ -56,6 +59,24 @@ export const AboutModal: React.FC<AboutModalProps> = ({
               <p className="text-[#475569]">
                 We are not a police service, an emergency dispatcher, a criminal investigation unit, or a surveillance system. We cannot dispatch help or accept criminal complaints.
               </p>
+            </div>
+          </div>
+
+          {/* Author & Creator Profile / Credits Card */}
+          <div className="bg-[#F0FDFA] border border-[#0F766E]/20 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block">
+                Credits & Attribution
+              </span>
+              <h3 className="text-sm font-bold text-[#0B1F33]">
+                made by Priyash Priyal Jena
+              </h3>
+              <p className="text-xs text-[#475569]">
+                Averti was created and made by Priyash Priyal Jena as an independent civic platform dedicated to public safety awareness, geospatial crime data accessibility, and verified citizen emergency resources across India.
+              </p>
+            </div>
+            <div className="shrink-0 self-start sm:self-center px-3 py-1 rounded-full bg-[#0F766E] text-white text-xs font-semibold">
+              Creator
             </div>
           </div>
 
@@ -88,25 +109,30 @@ export const AboutModal: React.FC<AboutModalProps> = ({
             </ul>
           </section>
 
-          <div className="pt-2 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onOpenSources();
-              }}
-              className="text-xs font-semibold text-[#0F766E] hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              Read full Methodology & NCRB documentation →
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-md bg-[#0F766E] text-white text-xs font-semibold hover:bg-[#0D655E] cursor-pointer"
-            >
-              Close
-            </button>
+          <div className="pt-3 border-t border-[#D5DCE0]/70 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs text-[#475569]">
+              Platform made by <span className="font-semibold text-[#0B1F33]">Priyash Priyal Jena</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenSources();
+                }}
+                className="text-xs font-semibold text-[#0F766E] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                Read Methodology →
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-md bg-[#0F766E] text-white text-xs font-semibold hover:bg-[#0D655E] cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -27,7 +27,9 @@ import {
   getDistrict6MonthTrend,
   DistrictMonthPoint,
   getState12MonthTrend,
-  StateMonthPoint
+  StateMonthPoint,
+  getCrimeCategoryBreakdown,
+  CrimeCategoryBreakdownItem
 } from '../data/crimeData';
 import {
   RotateCcw,
@@ -43,10 +45,15 @@ import {
   X,
   SlidersHorizontal,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  PieChart,
+  Info,
+  Shield,
+  Layers
 } from 'lucide-react';
 
 import { getDistrictFeature } from '../data/indiaGeoData';
+import { StateSummaryCardSkeleton } from './Skeletons';
 
 export interface StateSummaryCardProps {
   selectedState: string | null;
@@ -56,6 +63,7 @@ export interface StateSummaryCardProps {
   onResetToIndia: () => void;
   onResetDistrict?: () => void;
   onOpenDetailedStats?: () => void;
+  isLoading?: boolean;
 }
 
 // 3-Year Trend Chart Component (2022, 2023, 2024)
@@ -545,8 +553,9 @@ const State12MonthBarChart: React.FC<State12MonthBarChartProps> = ({
               }}
             />
 
-            {/* Bar Series 1: Primary State */}
+            {/* Bar Series 1: Primary State (Animation disabled during map movement for 60 FPS) */}
             <Bar
+              isAnimationActive={false}
               dataKey="state1Value"
               name={stateName}
               fill="#0F766E"
@@ -578,6 +587,7 @@ const State12MonthBarChart: React.FC<State12MonthBarChartProps> = ({
             {/* Bar Series 2: Comparison State (Side-by-Side) */}
             {comparisonState && (
               <Bar
+                isAnimationActive={false}
                 dataKey="state2Value"
                 name={comparisonState}
                 fill="#D97706"
@@ -730,6 +740,7 @@ const District6MonthTrendChart: React.FC<District6MonthTrendChartProps> = ({
               }}
             />
             <Line
+              isAnimationActive={false}
               type="monotone"
               dataKey="cases"
               stroke="#0F766E"
@@ -750,6 +761,206 @@ const District6MonthTrendChart: React.FC<District6MonthTrendChartProps> = ({
   );
 };
 
+// ==========================================
+// Crime Category Breakdown Component with Interactive Hover Tooltips
+// ==========================================
+interface CrimeCategoryBreakdownProps {
+  stateName?: string | null;
+  districtName?: string | null;
+  totalCases?: number | null;
+  ratePerLakh?: number | null;
+}
+
+const CrimeCategoryBreakdown: React.FC<CrimeCategoryBreakdownProps> = ({
+  stateName,
+  districtName,
+  totalCases,
+  ratePerLakh
+}) => {
+  const [hoveredCatId, setHoveredCatId] = useState<string | null>(null);
+  const [pinnedCatId, setPinnedCatId] = useState<string | null>(null);
+
+  const categories = useMemo(() => {
+    return getCrimeCategoryBreakdown(stateName, totalCases, ratePerLakh);
+  }, [stateName, totalCases, ratePerLakh]);
+
+  // Active category is either hovered or pinned (pinned assists touch devices)
+  const activeCatId = hoveredCatId || pinnedCatId;
+  const activeCategory = useMemo(() => {
+    return categories.find(c => c.id === activeCatId) || null;
+  }, [categories, activeCatId]);
+
+  return (
+    <div className="w-full bg-[#F6F8F7] rounded-md border border-[#D5DCE0] p-3 space-y-3">
+      {/* Header with Title & Instruction */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-1.5">
+          <PieChart className="w-3.5 h-3.5 text-[#0F766E]" />
+          <span className="text-[11px] font-semibold text-[#0B1F33] uppercase tracking-wider">
+            Crime Category Composition (NCRB 2024)
+          </span>
+        </div>
+        <span className="text-[10px] text-[#64748B] flex items-center gap-1">
+          <Info className="w-3 h-3 text-[#0F766E]" />
+          <span>Hover segments for detailed breakdown</span>
+        </span>
+      </div>
+
+      {/* Interactive Stacked Horizontal Breakdown Bar with Hover Tooltips */}
+      <div className="relative pt-1">
+        <div
+          role="region"
+          aria-label="Interactive crime category stacked distribution bar"
+          className="h-6 w-full rounded-md overflow-hidden flex bg-slate-200/80 p-0.5 border border-slate-300 shadow-inner"
+        >
+          {categories.map((cat) => {
+            const isHovered = activeCatId === cat.id;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                aria-label={`${cat.name}: ${cat.percentage}% of total cases`}
+                onMouseEnter={() => setHoveredCatId(cat.id)}
+                onMouseLeave={() => setHoveredCatId(null)}
+                onFocus={() => setHoveredCatId(cat.id)}
+                onBlur={() => setHoveredCatId(null)}
+                onClick={() => setPinnedCatId(prev => (prev === cat.id ? null : cat.id))}
+                style={{
+                  width: `${cat.percentage}%`,
+                  backgroundColor: cat.color
+                }}
+                className={`h-full transition-all duration-150 relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-white ${
+                  isHovered
+                    ? 'brightness-125 scale-y-110 z-20 shadow-md ring-1 ring-white/90'
+                    : activeCatId ? 'opacity-40' : 'opacity-95 hover:opacity-100'
+                }`}
+              />
+            );
+          })}
+        </div>
+
+        {/* Interactive Floating Hover Tooltip (Appears when any category is hovered or pinned) */}
+        {activeCategory && (
+          <div
+            role="tooltip"
+            aria-live="polite"
+            className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2.5 z-50 w-[295px] sm:w-[330px] max-w-[calc(100vw-36px)] bg-[#0B1F33] text-white text-xs rounded-lg p-3.5 shadow-2xl border border-slate-700 pointer-events-auto transition-all duration-150 animate-in fade-in zoom-in-95"
+          >
+            {/* Tooltip Header: Category Name + NCRB Chapter Tag */}
+            <div className="flex items-start justify-between gap-2 border-b border-slate-700/80 pb-2 mb-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: activeCategory.color }}
+                />
+                <span className="font-bold text-[12px] text-white truncate">
+                  {activeCategory.name}
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-300 font-mono bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 shrink-0">
+                {activeCategory.ncrbChapter}
+              </span>
+            </div>
+
+            {/* Tooltip Metrics Row: Percentage + Count + Rate */}
+            <div className="grid grid-cols-2 gap-2 bg-slate-800/90 rounded p-2 mb-2 border border-slate-700/60">
+              <div>
+                <span className="text-[10px] text-slate-400 block font-medium">Category Share</span>
+                <span className="text-base sm:text-lg font-bold text-emerald-400 tabular-nums">
+                  {activeCategory.percentage.toFixed(1)}%
+                </span>
+                <span className="text-[9.5px] text-slate-400 block">of all registrations</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 block font-medium">Estimated Cases</span>
+                <span className="text-base sm:text-lg font-bold text-white tabular-nums">
+                  {formatIndianNumber(activeCategory.count)}
+                </span>
+                <span className="text-[9.5px] text-slate-400 block">
+                  ~{activeCategory.ratePerLakh} per 1L pop.
+                </span>
+              </div>
+            </div>
+
+            {/* Key Legal Statutes & Examples */}
+            <div className="space-y-1.5 text-[11px] leading-relaxed">
+              <div>
+                <span className="text-slate-400 font-semibold">Statutes: </span>
+                <span className="text-slate-200 font-mono text-[10.5px]">
+                  {activeCategory.keySections}
+                </span>
+              </div>
+
+              <div>
+                <span className="text-slate-400 font-semibold">Primary offenses: </span>
+                <span className="text-slate-300">
+                  {activeCategory.examples.join(' · ')}
+                </span>
+              </div>
+
+              <div className="pt-1.5 border-t border-slate-800 text-[10px] text-slate-400 italic">
+                {activeCategory.reportingNote}
+              </div>
+            </div>
+
+            {/* Tooltip Caret Pointer */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0B1F33]" />
+          </div>
+        )}
+      </div>
+
+      {/* Interactive Category Legend Grid (Hovering cards also activates tooltips) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-0.5">
+        {categories.map((cat) => {
+          const isHovered = activeCatId === cat.id;
+          return (
+            <div
+              key={cat.id}
+              tabIndex={0}
+              role="button"
+              aria-label={`${cat.shortName}: ${cat.percentage}%`}
+              onMouseEnter={() => setHoveredCatId(cat.id)}
+              onMouseLeave={() => setHoveredCatId(null)}
+              onFocus={() => setHoveredCatId(cat.id)}
+              onBlur={() => setHoveredCatId(null)}
+              onClick={() => setPinnedCatId(prev => (prev === cat.id ? null : cat.id))}
+              className={`p-2 rounded border transition-all duration-150 cursor-pointer text-left select-none ${
+                isHovered
+                  ? 'bg-white border-[#0F766E] shadow-sm ring-1 ring-[#0F766E]/40'
+                  : 'bg-white/70 hover:bg-white border-[#D5DCE0]/80'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-1 mb-0.5">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: cat.color }}
+                  />
+                  <span className="text-[11px] font-medium text-[#0B1F33] truncate">
+                    {cat.shortName}
+                  </span>
+                </div>
+                <span className="text-[11px] font-bold text-[#0F766E] tabular-nums shrink-0">
+                  {cat.percentage.toFixed(1)}%
+                </span>
+              </div>
+              <div className="text-[10px] text-[#64748B] tabular-nums pl-3.5">
+                {formatIndianNumber(cat.count)} cases
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Grounding and Data Source Note */}
+      <div className="flex items-center justify-between text-[10px] text-[#64748B] border-t border-[#D5DCE0]/60 pt-2 px-0.5">
+        <span>NCRB Table 1A.3 Standard Classification</span>
+        <span>Covers IPC/BNS + SLL Offenses</span>
+      </div>
+    </div>
+  );
+};
+
 export const StateSummaryCard: React.FC<StateSummaryCardProps> = ({
   selectedState,
   selectedDistrict,
@@ -757,7 +968,8 @@ export const StateSummaryCard: React.FC<StateSummaryCardProps> = ({
   onSelectComparisonState,
   onResetToIndia,
   onResetDistrict,
-  onOpenDetailedStats
+  onOpenDetailedStats,
+  isLoading = false
 }) => {
   const [internalComparisonState, setInternalComparisonState] = useState<string | null>(null);
   const comparisonState = externalComparisonState !== undefined ? externalComparisonState : internalComparisonState;
@@ -813,6 +1025,10 @@ export const StateSummaryCard: React.FC<StateSummaryCardProps> = ({
   const districtRateVariance = isDistrictSelected && stateRate > 0 && typeof rate2024 === 'number'
     ? ((rate2024 - stateRate) / stateRate) * 100
     : null;
+
+  if (isLoading) {
+    return <StateSummaryCardSkeleton />;
+  }
 
   return (
     <article
@@ -881,32 +1097,68 @@ export const StateSummaryCard: React.FC<StateSummaryCardProps> = ({
         </div>
       </div>
 
-      {/* Primary Key Metrics Grid (Single-source-of-truth 2024 stats) */}
+      {/* Primary Key Metrics Grid with Interactive Hover Tooltips */}
       <div className="grid grid-cols-2 gap-3">
-        {/* Metric 1: Total Registered Cases */}
-        <div className="bg-[#F6F8F7] rounded-md p-3 border border-[#D5DCE0]/60">
-          <span className="block text-[11px] font-medium text-[#475569] mb-1">
-            {isDistrictSelected ? 'District Registered Cases' : '2024 Total Registered Cases'}
-          </span>
+        {/* Metric 1: Total Registered Cases with interactive breakdown tooltip */}
+        <div className="relative group bg-[#F6F8F7] hover:bg-slate-50 transition-colors rounded-md p-3 border border-[#D5DCE0]/60 cursor-help">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-medium text-[#475569]">
+              {isDistrictSelected ? 'District Registered Cases' : '2024 Total Registered Cases'}
+            </span>
+            <Info className="w-3 h-3 text-[#64748B] opacity-60 group-hover:opacity-100 group-hover:text-[#0F766E] transition-all shrink-0" />
+          </div>
           <div className="text-base sm:text-lg font-bold text-[#0B1F33] tabular-nums tracking-tight">
             {formatIndianNumber(total2024)}
           </div>
           <span className="block text-[10px] text-[#475569] mt-0.5">
             {isDistrictSelected ? 'Local police stations FIRs' : 'IPC/BNS + SLL crimes'}
           </span>
+
+          {/* Quick Category Breakdown Hover Tooltip */}
+          <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 bg-[#0B1F33] text-white text-[11px] rounded-lg p-2.5 shadow-xl border border-slate-700 pointer-events-none transition-all">
+            <div className="font-semibold text-white border-b border-slate-700 pb-1 mb-1.5 flex items-center justify-between">
+              <span>Category Overview</span>
+              <span className="text-[10px] text-emerald-400 font-mono">NCRB 2024</span>
+            </div>
+            <p className="text-slate-300 text-[10px] leading-relaxed">
+              Total registered FIRs across all 6 NCRB chapters. Regulatory acts (SLL) and property theft comprise the majority of registrations.
+            </p>
+            <div className="mt-1.5 pt-1 border-t border-slate-800 text-[9.5px] text-slate-400">
+              Hover category segments below for exact case shares
+            </div>
+            <div className="absolute top-full left-6 border-4 border-transparent border-t-[#0B1F33]" />
+          </div>
         </div>
 
-        {/* Metric 2: Registration Rate per 1 Lakh */}
-        <div className="bg-[#F6F8F7] rounded-md p-3 border border-[#D5DCE0]/60">
-          <span className="block text-[11px] font-medium text-[#475569] mb-1">
-            Registered cases per 1 lakh
-          </span>
+        {/* Metric 2: Registration Rate per 1 Lakh with interactive tooltip */}
+        <div className="relative group bg-[#F6F8F7] hover:bg-slate-50 transition-colors rounded-md p-3 border border-[#D5DCE0]/60 cursor-help">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-medium text-[#475569]">
+              Registered cases per 1 lakh
+            </span>
+            <Info className="w-3 h-3 text-[#64748B] opacity-60 group-hover:opacity-100 group-hover:text-[#0F766E] transition-all shrink-0" />
+          </div>
           <div className="text-base sm:text-lg font-bold text-[#0F766E] tabular-nums tracking-tight">
             {rate2024 !== undefined && rate2024 !== null ? rate2024.toFixed(1) : 'Not available'}
           </div>
           <span className="block text-[10px] text-[#475569] mt-0.5 truncate">
             {isDistrictSelected ? `Quintile: ${bandLabel}` : isStateSelected ? `Band: ${bandLabel}` : 'National baseline rate'}
           </span>
+
+          {/* Quick Rate Breakdown Tooltip */}
+          <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 bg-[#0B1F33] text-white text-[11px] rounded-lg p-2.5 shadow-xl border border-slate-700 pointer-events-none transition-all">
+            <div className="font-semibold text-white border-b border-slate-700 pb-1 mb-1.5 flex items-center justify-between">
+              <span>Rate Standardization</span>
+              <span className="text-[10px] text-emerald-400 font-mono">100,000 pop.</span>
+            </div>
+            <p className="text-slate-300 text-[10px] leading-relaxed">
+              Standardized crime rate per 1 lakh population. Normalizes reporting volume across high and low population jurisdictions.
+            </p>
+            <div className="mt-1.5 pt-1 border-t border-slate-800 text-[9.5px] text-slate-400">
+              Higher rates often reflect proactive registration portals
+            </div>
+            <div className="absolute top-full right-6 border-4 border-transparent border-t-[#0B1F33]" />
+          </div>
         </div>
       </div>
 
@@ -932,6 +1184,14 @@ export const StateSummaryCard: React.FC<StateSummaryCardProps> = ({
           </span>
         </div>
       )}
+
+      {/* Crime Category Composition & Interactive Hover Tooltips */}
+      <CrimeCategoryBreakdown
+        stateName={selectedState}
+        districtName={isDistrictSelected ? (districtFeature?.properties?.name || selectedDistrict) : null}
+        totalCases={total2024}
+        ratePerLakh={rate2024}
+      />
 
       {/* Year-on-Year Badge & Mandatory IPC/BNS Care Note (State/National) */}
       {!isDistrictSelected && (

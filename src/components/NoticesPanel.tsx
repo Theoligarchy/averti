@@ -15,19 +15,22 @@ import {
   XCircle,
   FileText
 } from 'lucide-react';
+import { NoticesPanelSkeleton } from './Skeletons';
 
 interface NoticesPanelProps {
   notices: Notice[];
   selectedState: string | null;
   onSelectNotice: (notice: Notice) => void;
   onViewAllNotices?: () => void;
+  isLoading?: boolean;
 }
 
 export const NoticesPanel: React.FC<NoticesPanelProps> = ({
   notices,
   selectedState,
   onSelectNotice,
-  onViewAllNotices
+  onViewAllNotices,
+  isLoading = false
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<NoticeCategory | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -119,6 +122,10 @@ export const NoticesPanel: React.FC<NoticesPanelProps> = ({
       return dateStr;
     }
   };
+
+  if (isLoading) {
+    return <NoticesPanelSkeleton />;
+  }
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg border border-[#D5DCE0] shadow-xs">

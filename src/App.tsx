@@ -51,6 +51,18 @@ export default function App() {
   const [tipModalNotice, setTipModalNotice] = useState<Notice | null>(null);
   const [isOfflineSimulated, setIsOfflineSimulated] = useState<boolean>(false);
 
+  // Data initialization and state/district transition loading states
+  const [isInitializing, setIsInitializing] = useState<boolean>(true);
+  const [isDataTransitioning, setIsDataTransitioning] = useState<boolean>(false);
+
+  // Initial initialization hydration window
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitializing(false);
+    }, 450);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Available districts for the current state
   const availableDistricts = useMemo(() => {
     return selectedState ? getDistrictNamesForState(selectedState) : [];
@@ -115,6 +127,7 @@ export default function App() {
 
   // Sync state selection to URL hash when updated
   const handleSelectState = (state: string | null) => {
+    setIsDataTransitioning(true);
     setSelectedState(state);
     setSelectedDistrict(null);
     if (state) {
@@ -122,9 +135,13 @@ export default function App() {
     } else {
       window.history.replaceState(null, '', '#/');
     }
+    setTimeout(() => {
+      setIsDataTransitioning(false);
+    }, 320);
   };
 
   const handleSelectDistrict = (district: string | null, stateOverride?: string | null) => {
+    setIsDataTransitioning(true);
     const targetState = stateOverride || selectedState;
     if (stateOverride && stateOverride !== selectedState) {
       setSelectedState(stateOverride);
@@ -142,6 +159,9 @@ export default function App() {
     } else {
       window.history.replaceState(null, '', '#/');
     }
+    setTimeout(() => {
+      setIsDataTransitioning(false);
+    }, 280);
   };
 
   const handleOpenNotice = (notice: Notice) => {
@@ -270,6 +290,7 @@ export default function App() {
                   onViewAllNotices={() => {
                     handleSelectState(null);
                   }}
+                  isLoading={isInitializing || isDataTransitioning}
                 />
               </div>
 
@@ -416,6 +437,7 @@ export default function App() {
                     onResetToIndia={() => handleSelectState(null)}
                     onResetDistrict={() => handleSelectDistrict(null)}
                     onOpenDetailedStats={() => setIsSourcesModalOpen(true)}
+                    isLoading={isInitializing || isDataTransitioning}
                   />
                 </div>
 
@@ -425,6 +447,7 @@ export default function App() {
                     selectedDistrict={selectedDistrict}
                     selectedState={selectedState}
                     onSelectDistrict={handleSelectDistrict}
+                    isLoading={isInitializing || isDataTransitioning}
                   />
                 </div>
 
@@ -437,6 +460,7 @@ export default function App() {
                     onViewAllWanted={() => {
                       handleSelectState(null);
                     }}
+                    isLoading={isInitializing || isDataTransitioning}
                   />
                 </div>
               </div>

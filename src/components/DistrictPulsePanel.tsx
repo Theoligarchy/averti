@@ -34,18 +34,21 @@ import {
   generateDistrictPulseAlerts,
   generateSingleIncomingAlert
 } from '../data/districtPulseData';
+import { DistrictPulsePanelSkeleton } from './Skeletons';
 
 interface DistrictPulsePanelProps {
   selectedDistrict: string | null;
   selectedState: string | null;
   onSelectDistrict?: (district: string, state?: string | null) => void;
   onLocateOnMap?: (lat: number, lng: number) => void;
+  isLoading?: boolean;
 }
 
 export const DistrictPulsePanel: React.FC<DistrictPulsePanelProps> = ({
   selectedDistrict,
   selectedState,
-  onSelectDistrict
+  onSelectDistrict,
+  isLoading = false
 }) => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [severityFilter, setSeverityFilter] = useState<'all' | 'high'>('all');
@@ -250,6 +253,10 @@ export const DistrictPulsePanel: React.FC<DistrictPulsePanelProps> = ({
     { name: 'Gurugram', state: 'Haryana' },
     { name: 'Varanasi', state: 'Uttar Pradesh' }
   ];
+
+  if (isLoading) {
+    return <DistrictPulsePanelSkeleton />;
+  }
 
   return (
     <div className="flex flex-col bg-white rounded-lg border border-[#D5DCE0] shadow-xs overflow-hidden">

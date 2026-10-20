@@ -17,11 +17,15 @@ export const Footer: React.FC<FooterProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-8">
         {/* Top Brand & Philosophy Row */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-[#D5DCE0]/70">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <span className="text-xl font-bold font-serif text-[#0B1F33]">Averti</span>
             <span className="text-[#D5DCE0]">|</span>
             <span className="text-xs text-[#475569] font-medium tracking-wide">
               See. Report. Protect.
+            </span>
+            <span className="text-[#D5DCE0] hidden sm:inline">·</span>
+            <span className="text-xs text-[#0F766E] font-medium">
+              made by Priyash Priyal Jena
             </span>
           </div>
 
@@ -79,7 +83,7 @@ export const Footer: React.FC<FooterProps> = ({
               In any immediate life-threatening emergency, call <strong>112</strong> immediately. Averti does not maintain live dispatch, intercept calls, or store criminal tip reports.
             </p>
             <div className="pt-2 text-[#64748B]">
-              Dataset Year: 2024 (Latest Available) · Reviewed: October 2026
+              made by Priyash Priyal Jena · Dataset Year: 2024 (Latest Available) · Reviewed: October 2026
             </div>
           </div>
         </div>

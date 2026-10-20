@@ -1,5 +1,7 @@
 # Averti | Citizen Safety Platform
 
+**made by Priyash Priyal Jena**
+
 Averti is a proposed citizen-facing safety platform designed to make public safety information more accessible and help people explore safety-related information and resources.
 
 ## Live Demo
@@ -131,6 +133,12 @@ To create an optimized production build:
 npm run build
 npm start
 ```
+
+---
+
+## Author
+
+Conceived, authored, and made by **Priyash Priyal Jena**.
 
 ---
 
