@@ -9,18 +9,17 @@ import { InteractiveMap } from './components/InteractiveMap';
 import { PoliceAdminDashboard } from './components/PoliceAdminDashboard';
 import { StateListView } from './components/StateListView';
 import { StateSummaryCard } from './components/StateSummaryCard';
-import { DistrictPulsePanel } from './components/DistrictPulsePanel';
 import { NoticesPanel } from './components/NoticesPanel';
 import { WantedNoticesPanel } from './components/WantedNoticesPanel';
+import { CrimeReportsView } from './components/CrimeReportsView';
+import { OverviewSection } from './components/OverviewSection';
+import { PublicNoticesView } from './components/PublicNoticesView';
 import { NoticeDetailModal } from './components/NoticeDetailModal';
 import { EmergencyHelpPage } from './components/EmergencyHelpPage';
 import { SourcesMethodModal } from './components/SourcesMethodModal';
 import { AboutModal } from './components/AboutModal';
 import { CorrectionsModal } from './components/CorrectionsModal';
-import { TrustedCircleModal } from './components/TrustedCircleModal';
 import { NoticeTipModal } from './components/NoticeTipModal';
-import { DemoPresentationBar } from './components/DemoPresentationBar';
-import { OfflineStatusBanner } from './components/OfflineStatusBanner';
 import { Footer } from './components/Footer';
 import {
   Map as MapIcon,
@@ -29,16 +28,18 @@ import {
   Phone,
   Shield,
   Layers,
-  FileText
+  FileText,
+  Newspaper,
+  LayoutDashboard
 } from 'lucide-react';
 
 export default function App() {
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'map' | 'gis' | 'list'>('gis');
-  const [activeTab, setActiveTab] = useState<ActiveTab>('atlas');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
 
-  const [mobileSectionTab, setMobileSectionTab] = useState<'map' | 'pulse' | 'notices' | 'wanted'>('map');
+  const [mobileSectionTab, setMobileSectionTab] = useState<'map' | 'notices' | 'wanted' | 'reports'>('map');
 
   // Modal states
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
@@ -46,12 +47,9 @@ export default function App() {
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isCorrectionsModalOpen, setIsCorrectionsModalOpen] = useState(false);
   const [correctionPrefillRef, setCorrectionPrefillRef] = useState<string>('');
-  const [isTrustedCircleModalOpen, setIsTrustedCircleModalOpen] = useState(false);
-  const [trustedCircleInitialState, setTrustedCircleInitialState] = useState<'setup' | 'escalated'>('setup');
   const [tipModalNotice, setTipModalNotice] = useState<Notice | null>(null);
-  const [isOfflineSimulated, setIsOfflineSimulated] = useState<boolean>(false);
 
-  // Data initialization and state/district transition loading states
+  // Loading states
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const [isDataTransitioning, setIsDataTransitioning] = useState<boolean>(false);
 
@@ -59,7 +57,7 @@ export default function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsInitializing(false);
-    }, 450);
+    }, 300);
     return () => clearTimeout(timer);
   }, []);
 
@@ -84,17 +82,26 @@ export default function App() {
         const id = hash.replace('#/notice/', '');
         const found = INITIAL_NOTICES.find(n => n.id === id);
         if (found) setSelectedNotice(found);
+      } else if (hash.startsWith('#/overview')) {
+        setActiveTab('overview');
+      } else if (hash.startsWith('#/map') || hash.startsWith('#/atlas')) {
+        setActiveTab('atlas');
       } else if (hash.startsWith('#/emergency')) {
         setActiveTab('emergency');
+      } else if (hash.startsWith('#/reports')) {
+        setActiveTab('reports');
+      } else if (hash.startsWith('#/notices')) {
+        setActiveTab('notices');
+      } else if (hash.startsWith('#/wanted')) {
+        setActiveTab('wanted');
       } else if (hash.startsWith('#/police') || hash.startsWith('#/triage')) {
         setActiveTab('police_triage');
-      } else if (hash.startsWith('#/trusted') || hash.startsWith('#/safety')) {
-        setIsTrustedCircleModalOpen(true);
       } else if (hash.startsWith('#/sources')) {
         setIsSourcesModalOpen(true);
       } else if (hash.startsWith('#/about')) {
         setIsAboutModalOpen(true);
       } else if (hash.startsWith('#/state/')) {
+        setActiveTab('atlas');
         const statePart = hash.replace('#/state/', '');
         if (statePart.includes('/district/')) {
           const [s, d] = statePart.split('/district/');
@@ -125,6 +132,79 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Keyboard shortcut listener ('o' for Overview, 'a' for Atlas/Stats, 'n' for Notices, 'r' for Reports, 'e' for Help, 'v' for View Mode)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+      if (key === 'o') {
+        e.preventDefault();
+        setActiveTab('overview');
+        window.history.replaceState(null, '', '#/overview');
+      } else if (key === 'a') {
+        e.preventDefault();
+        setActiveTab('atlas');
+        if (selectedState) {
+          window.history.replaceState(null, '', `#/state/${encodeURIComponent(selectedState)}`);
+        } else {
+          window.history.replaceState(null, '', '#/map');
+        }
+      } else if (key === 'n') {
+        e.preventDefault();
+        setActiveTab('notices');
+        window.history.replaceState(null, '', '#/notices');
+      } else if (key === 'e') {
+        e.preventDefault();
+        setActiveTab('emergency');
+        window.history.replaceState(null, '', '#/emergency');
+      } else if (key === 'r') {
+        e.preventDefault();
+        setActiveTab('reports');
+        window.history.replaceState(null, '', '#/reports');
+      } else if (key === 'p') {
+        e.preventDefault();
+        setActiveTab('police_triage');
+        window.history.replaceState(null, '', '#/police-triage');
+      } else if (key === 'v') {
+        if (activeTab === 'atlas') {
+          e.preventDefault();
+          setViewMode(prev => (prev === 'gis' ? 'map' : prev === 'map' ? 'list' : 'gis'));
+        }
+      } else if (key === 'escape') {
+        if (selectedNotice) {
+          setSelectedNotice(null);
+        } else if (isAboutModalOpen) {
+          setIsAboutModalOpen(false);
+        } else if (isSourcesModalOpen) {
+          setIsSourcesModalOpen(false);
+        } else if (isCorrectionsModalOpen) {
+          setIsCorrectionsModalOpen(false);
+        } else if (selectedDistrict) {
+          setSelectedDistrict(null);
+        } else if (selectedState) {
+          handleSelectState(null);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, selectedState, selectedDistrict, selectedNotice, isAboutModalOpen, isSourcesModalOpen, isCorrectionsModalOpen]);
+
   // Sync state selection to URL hash when updated
   const handleSelectState = (state: string | null) => {
     setIsDataTransitioning(true);
@@ -133,11 +213,11 @@ export default function App() {
     if (state) {
       window.history.replaceState(null, '', `#/state/${encodeURIComponent(state)}`);
     } else {
-      window.history.replaceState(null, '', '#/');
+      window.history.replaceState(null, '', '#/map');
     }
     setTimeout(() => {
       setIsDataTransitioning(false);
-    }, 320);
+    }, 200);
   };
 
   const handleSelectDistrict = (district: string | null, stateOverride?: string | null) => {
@@ -157,11 +237,11 @@ export default function App() {
     } else if (targetState) {
       window.history.replaceState(null, '', `#/state/${encodeURIComponent(targetState)}`);
     } else {
-      window.history.replaceState(null, '', '#/');
+      window.history.replaceState(null, '', '#/map');
     }
     setTimeout(() => {
       setIsDataTransitioning(false);
-    }, 280);
+    }, 200);
   };
 
   const handleOpenNotice = (notice: Notice) => {
@@ -174,7 +254,7 @@ export default function App() {
     if (selectedState) {
       window.history.replaceState(null, '', `#/state/${encodeURIComponent(selectedState)}`);
     } else {
-      window.history.replaceState(null, '', '#/');
+      window.history.replaceState(null, '', '#/map');
     }
   };
 
@@ -190,12 +270,22 @@ export default function App() {
         activeTab={activeTab}
         onNavigate={(tab) => {
           setActiveTab(tab);
-          if (tab === 'emergency') {
+          if (tab === 'overview') {
+            window.history.replaceState(null, '', '#/overview');
+          } else if (tab === 'emergency') {
             window.history.replaceState(null, '', '#/emergency');
+          } else if (tab === 'reports') {
+            window.history.replaceState(null, '', '#/reports');
+          } else if (tab === 'notices' || tab === 'wanted') {
+            window.history.replaceState(null, '', '#/notices');
           } else if (tab === 'police_triage') {
             window.history.replaceState(null, '', '#/police-triage');
           } else {
-            window.history.replaceState(null, '', '#/');
+            if (selectedState) {
+              window.history.replaceState(null, '', `#/state/${encodeURIComponent(selectedState)}`);
+            } else {
+              window.history.replaceState(null, '', '#/map');
+            }
           }
         }}
         selectedState={selectedState}
@@ -204,26 +294,53 @@ export default function App() {
         onSelectDistrict={handleSelectDistrict}
         onOpenSources={() => setIsSourcesModalOpen(true)}
         onOpenAbout={() => setIsAboutModalOpen(true)}
-        onOpenTrustedCircle={() => setIsTrustedCircleModalOpen(true)}
-      />
-
-      {/* Offline Status & Local Cache Banner */}
-      <OfflineStatusBanner
-        isSimulatedOffline={isOfflineSimulated}
-        onEmergencyCall={() => {
-          window.location.href = 'tel:112';
-        }}
       />
 
       {/* Main View Router */}
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
-        {activeTab === 'emergency' ? (
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-6 py-5 sm:py-7">
+        {activeTab === 'overview' ? (
+          <OverviewSection
+            onNavigate={(tab) => {
+              if (tab === 'about') {
+                setIsAboutModalOpen(true);
+              } else if (tab === 'sources') {
+                setIsSourcesModalOpen(true);
+              } else {
+                setActiveTab(tab);
+              }
+            }}
+            onSelectState={handleSelectState}
+          />
+        ) : activeTab === 'emergency' ? (
           <EmergencyHelpPage
-            onBackToAtlas={() => setActiveTab('atlas')}
-            onOpenTrustedCircle={() => setIsTrustedCircleModalOpen(true)}
+            onBackToAtlas={() => {
+              setActiveTab('atlas');
+              window.history.replaceState(null, '', '#/map');
+            }}
+          />
+        ) : activeTab === 'reports' ? (
+          <CrimeReportsView
+            selectedState={selectedState}
+            onSelectState={handleSelectState}
+            onNavigateToAtlas={() => {
+              setActiveTab('atlas');
+              window.history.replaceState(null, '', '#/map');
+            }}
           />
         ) : activeTab === 'police_triage' ? (
           <PoliceAdminDashboard />
+        ) : activeTab === 'notices' || activeTab === 'wanted' ? (
+          <PublicNoticesView
+            notices={INITIAL_NOTICES}
+            selectedState={selectedState}
+            onSelectState={handleSelectState}
+            onSelectNotice={handleOpenNotice}
+            onReturnToAtlas={() => {
+              setActiveTab('atlas');
+              window.history.replaceState(null, '', '#/map');
+            }}
+            isLoading={isInitializing || isDataTransitioning}
+          />
         ) : (
           <div className="space-y-4">
             {/* Mobile View Switcher Tabs (360px - 1023px) */}
@@ -231,41 +348,29 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setMobileSectionTab('map')}
-                className={`flex-1 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`flex-1 py-2 text-xs font-semibold rounded transition-colors ${
                   mobileSectionTab === 'map'
                     ? 'bg-[#0F766E] text-white shadow-xs'
                     : 'text-[#475569] hover:text-[#0B1F33]'
                 }`}
               >
-                Map & Stats
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileSectionTab('pulse')}
-                className={`flex-1 py-2 text-xs font-semibold rounded-md transition-colors flex items-center justify-center gap-1 ${
-                  mobileSectionTab === 'pulse'
-                    ? 'bg-[#0F766E] text-white shadow-xs'
-                    : 'text-[#475569] hover:text-[#0B1F33]'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Pulse
+                Map &amp; Stats
               </button>
               <button
                 type="button"
                 onClick={() => setMobileSectionTab('notices')}
-                className={`flex-1 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`flex-1 py-2 text-xs font-semibold rounded transition-colors ${
                   mobileSectionTab === 'notices'
                     ? 'bg-[#0F766E] text-white shadow-xs'
                     : 'text-[#475569] hover:text-[#0B1F33]'
                 }`}
               >
-                Notices
+                Missing Persons
               </button>
               <button
                 type="button"
                 onClick={() => setMobileSectionTab('wanted')}
-                className={`flex-1 py-2 text-xs font-semibold rounded-md transition-colors ${
+                className={`flex-1 py-2 text-xs font-semibold rounded transition-colors ${
                   mobileSectionTab === 'wanted'
                     ? 'bg-[#0F766E] text-white shadow-xs'
                     : 'text-[#475569] hover:text-[#0B1F33]'
@@ -273,11 +378,18 @@ export default function App() {
               >
                 Wanted
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('reports')}
+                className="flex-1 py-2 text-xs font-semibold rounded transition-colors text-[#475569] hover:text-[#0B1F33]"
+              >
+                Reports
+              </button>
             </div>
 
-            {/* Core Desktop 3-Column Layout */}
+            {/* Core Desktop 3-Column Layout: Left (Missing), Center (Map), Right (Stats & Wanted) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-              {/* LEFT COLUMN: Missing Persons & Other Notices (3.2 cols) */}
+              {/* LEFT COLUMN: Missing Persons & Other Notices (3 cols) */}
               <div
                 className={`lg:col-span-3 xl:col-span-3 ${
                   mobileSectionTab === 'notices' ? 'block' : 'hidden lg:block'
@@ -288,13 +400,14 @@ export default function App() {
                   selectedState={selectedState}
                   onSelectNotice={handleOpenNotice}
                   onViewAllNotices={() => {
-                    handleSelectState(null);
+                    setActiveTab('notices');
+                    window.history.replaceState(null, '', '#/notices');
                   }}
                   isLoading={isInitializing || isDataTransitioning}
                 />
               </div>
 
-              {/* CENTER COLUMN: Interactive India Map & Controls (5.6 cols) */}
+              {/* CENTER COLUMN: Interactive India Map & Minimal Controls (6 cols) */}
               <div
                 className={`lg:col-span-6 xl:col-span-6 space-y-4 ${
                   mobileSectionTab === 'map' ? 'block' : 'hidden lg:block'
@@ -313,10 +426,10 @@ export default function App() {
                         <select
                           value={selectedState || ''}
                           onChange={(e) => handleSelectState(e.target.value || null)}
-                          className="w-full appearance-none pl-2.5 pr-7 py-1.5 text-xs font-medium bg-[#F6F8F7] border border-[#64748B]/50 rounded-md text-[#0B1F33] focus:outline-none focus:ring-1 focus:ring-[#0F766E] cursor-pointer"
+                          className="w-full appearance-none pl-2.5 pr-7 py-1.5 text-xs font-medium bg-[#F6F8F7] border border-[#D5DCE0] rounded text-[#0B1F33] focus:outline-none focus:ring-1 focus:ring-[#0F766E] cursor-pointer"
                           aria-label="Filter entire atlas by state"
                         >
-                          <option value="">India (overall) — All States & UTs</option>
+                          <option value="">India (overall) — All States &amp; UTs</option>
                           {ALL_INDIA_STATES.map((state) => (
                             <option key={state} value={state}>
                               {state}
@@ -337,7 +450,7 @@ export default function App() {
                           <select
                             value={selectedDistrict || ''}
                             onChange={(e) => handleSelectDistrict(e.target.value || null)}
-                            className="w-full appearance-none pl-2.5 pr-7 py-1.5 text-xs font-medium bg-[#F6F8F7] border border-[#64748B]/50 rounded-md text-[#0B1F33] focus:outline-none focus:ring-1 focus:ring-[#0F766E] cursor-pointer"
+                            className="w-full appearance-none pl-2.5 pr-7 py-1.5 text-xs font-medium bg-[#F6F8F7] border border-[#D5DCE0] rounded text-[#0B1F33] focus:outline-none focus:ring-1 focus:ring-[#0F766E] cursor-pointer"
                             aria-label={`Filter by district in ${selectedState}`}
                           >
                             <option value="">All Districts ({selectedState})</option>
@@ -353,21 +466,8 @@ export default function App() {
                     )}
                   </div>
 
-                  {/* Segmented View Mode Toggle: Vector Map vs WebGIS vs List */}
-                  <div className="inline-flex rounded-md border border-[#64748B]/40 p-0.5 bg-[#F6F8F7] text-xs font-semibold shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setViewMode('map')}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded transition-colors cursor-pointer ${
-                        viewMode === 'map'
-                          ? 'bg-[#0F766E] text-white shadow-xs'
-                          : 'text-[#475569] hover:text-[#0B1F33]'
-                      }`}
-                      aria-pressed={viewMode === 'map'}
-                    >
-                      <MapIcon className="w-3.5 h-3.5" />
-                      <span>Vector Map</span>
-                    </button>
+                  {/* Segmented View Mode Toggle: Interactive Map vs Vector Map vs List */}
+                  <div className="inline-flex rounded border border-[#D5DCE0] p-0.5 bg-[#F6F8F7] text-xs font-semibold shrink-0">
                     <button
                       type="button"
                       onClick={() => setViewMode('gis')}
@@ -377,9 +477,24 @@ export default function App() {
                           : 'text-[#475569] hover:text-[#0B1F33]'
                       }`}
                       aria-pressed={viewMode === 'gis'}
+                      title="Interactive WebGIS Canvas Map [Key: V]"
                     >
                       <Layers className="w-3.5 h-3.5" />
                       <span>WebGIS Atlas</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('map')}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded transition-colors cursor-pointer ${
+                        viewMode === 'map'
+                          ? 'bg-[#0F766E] text-white shadow-xs'
+                          : 'text-[#475569] hover:text-[#0B1F33]'
+                      }`}
+                      aria-pressed={viewMode === 'map'}
+                      title="Clean Vector Outline Map [Key: V]"
+                    >
+                      <MapIcon className="w-3.5 h-3.5" />
+                      <span>Vector Map</span>
                     </button>
                     <button
                       type="button"
@@ -390,6 +505,7 @@ export default function App() {
                           : 'text-[#475569] hover:text-[#0B1F33]'
                       }`}
                       aria-pressed={viewMode === 'list'}
+                      title="State Table List View [Key: V]"
                     >
                       <ListIcon className="w-3.5 h-3.5" />
                       <span>List</span>
@@ -421,48 +537,35 @@ export default function App() {
                 )}
               </div>
 
-              {/* RIGHT COLUMN: State Summary, District Pulse & Wanted Notices (3.2 cols) */}
+              {/* RIGHT COLUMN: State Summary & Wanted Notices (3 cols) */}
               <div
                 className={`lg:col-span-3 xl:col-span-3 space-y-4 ${
-                  mobileSectionTab === 'wanted' || mobileSectionTab === 'pulse' || mobileSectionTab === 'map'
+                  mobileSectionTab === 'wanted' || mobileSectionTab === 'map'
                     ? 'block'
                     : 'hidden lg:block'
                 }`}
               >
-                {/* Selected State & District Summary Card */}
-                <div className={mobileSectionTab === 'pulse' ? 'hidden lg:block' : 'block'}>
-                  <StateSummaryCard
-                    selectedState={selectedState}
-                    selectedDistrict={selectedDistrict}
-                    onResetToIndia={() => handleSelectState(null)}
-                    onResetDistrict={() => handleSelectDistrict(null)}
-                    onOpenDetailedStats={() => setIsSourcesModalOpen(true)}
-                    isLoading={isInitializing || isDataTransitioning}
-                  />
-                </div>
-
-                {/* District Pulse Section: Scrollable list of recent geolocated public safety alerts */}
-                <div className={mobileSectionTab === 'wanted' ? 'hidden lg:block' : 'block'}>
-                  <DistrictPulsePanel
-                    selectedDistrict={selectedDistrict}
-                    selectedState={selectedState}
-                    onSelectDistrict={handleSelectDistrict}
-                    isLoading={isInitializing || isDataTransitioning}
-                  />
-                </div>
+                {/* Selected State & Area Overview Card */}
+                <StateSummaryCard
+                  selectedState={selectedState}
+                  selectedDistrict={selectedDistrict}
+                  onResetToIndia={() => handleSelectState(null)}
+                  onResetDistrict={() => handleSelectDistrict(null)}
+                  onOpenDetailedStats={() => setIsSourcesModalOpen(true)}
+                  isLoading={isInitializing || isDataTransitioning}
+                />
 
                 {/* Police & Agency Wanted Notices */}
-                <div className={mobileSectionTab === 'pulse' ? 'hidden lg:block' : 'block'}>
-                  <WantedNoticesPanel
-                    notices={INITIAL_NOTICES}
-                    selectedState={selectedState}
-                    onSelectNotice={handleOpenNotice}
-                    onViewAllWanted={() => {
-                      handleSelectState(null);
-                    }}
-                    isLoading={isInitializing || isDataTransitioning}
-                  />
-                </div>
+                <WantedNoticesPanel
+                  notices={INITIAL_NOTICES}
+                  selectedState={selectedState}
+                  onSelectNotice={handleOpenNotice}
+                  onViewAllWanted={() => {
+                    setActiveTab('notices');
+                    window.history.replaceState(null, '', '#/notices');
+                  }}
+                  isLoading={isInitializing || isDataTransitioning}
+                />
               </div>
             </div>
           </div>
@@ -509,45 +612,10 @@ export default function App() {
       {/* Corrections & Takedown Modal */}
       <CorrectionsModal
         isOpen={isCorrectionsModalOpen}
-        onClose={() => setIsCorrectionsModalOpen(false)}
         prefilledRef={correctionPrefillRef}
-      />
-
-      {/* Trusted Circle Timed Safety Check-In Modal */}
-      <TrustedCircleModal
-        isOpen={isTrustedCircleModalOpen}
-        initialViewState={trustedCircleInitialState}
         onClose={() => {
-          setIsTrustedCircleModalOpen(false);
-          setTrustedCircleInitialState('setup');
-        }}
-        currentLocality={
-          selectedDistrict
-            ? `${selectedDistrict}, ${selectedState}`
-            : (selectedState ? `${selectedState}, India` : 'Rasulgarh Square, Bhubaneswar')
-        }
-        onTrigger112={() => {
-          window.location.href = 'tel:112';
-        }}
-      />
-
-      {/* Floating Pitch Presentation Utility Dock */}
-      <DemoPresentationBar
-        currentState={selectedState || ''}
-        isAdminActive={activeTab === 'police_triage'}
-        onSelectState={(stateName: string) => {
-          setActiveTab('atlas');
-          handleSelectState(stateName);
-        }}
-        onToggleAdmin={() => {
-          setActiveTab(prev => (prev === 'police_triage' ? 'atlas' : 'police_triage'));
-        }}
-        onTriggerEmergency={() => {
-          setTrustedCircleInitialState('escalated');
-          setIsTrustedCircleModalOpen(true);
-        }}
-        onToggleOffline={(offline: boolean) => {
-          setIsOfflineSimulated(offline);
+          setIsCorrectionsModalOpen(false);
+          setCorrectionPrefillRef('');
         }}
       />
 
@@ -560,9 +628,24 @@ export default function App() {
 
       {/* Bottom Sticky Navigation Bar for Mobile (≤ 768px) */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#D5DCE0] py-2 px-4 flex items-center justify-around z-40 shadow-lg text-[11px] font-medium"
+        className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#D5DCE0] py-2 px-3 flex items-center justify-around z-40 shadow-lg text-[10px] font-medium"
         aria-label="Mobile Bottom Navigation"
       >
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('overview');
+          }}
+          className={`flex flex-col items-center gap-1 ${
+            activeTab === 'overview'
+              ? 'text-[#0F766E] font-bold'
+              : 'text-[#475569]'
+          }`}
+        >
+          <LayoutDashboard className="w-4 h-4" />
+          <span>Overview</span>
+        </button>
+
         <button
           type="button"
           onClick={() => {
@@ -575,40 +658,38 @@ export default function App() {
               : 'text-[#475569]'
           }`}
         >
-          <Layers className="w-5 h-5" />
-          <span>Atlas</span>
+          <Layers className="w-4 h-4" />
+          <span>Statistics</span>
         </button>
 
         <button
           type="button"
           onClick={() => {
-            setActiveTab('atlas');
-            setMobileSectionTab('notices');
+            setActiveTab('notices');
           }}
           className={`flex flex-col items-center gap-1 ${
-            activeTab === 'atlas' && mobileSectionTab === 'notices'
+            activeTab === 'notices' || activeTab === 'wanted'
               ? 'text-[#0F766E] font-bold'
               : 'text-[#475569]'
           }`}
         >
-          <FileText className="w-5 h-5" />
+          <FileText className="w-4 h-4" />
           <span>Notices</span>
         </button>
 
         <button
           type="button"
           onClick={() => {
-            setActiveTab('atlas');
-            setMobileSectionTab('wanted');
+            setActiveTab('reports');
           }}
           className={`flex flex-col items-center gap-1 ${
-            activeTab === 'atlas' && mobileSectionTab === 'wanted'
+            activeTab === 'reports'
               ? 'text-[#0F766E] font-bold'
               : 'text-[#475569]'
           }`}
         >
-          <Shield className="w-5 h-5" />
-          <span>Wanted</span>
+          <Newspaper className="w-4 h-4" />
+          <span>Insights</span>
         </button>
 
         <button
@@ -620,8 +701,8 @@ export default function App() {
               : 'text-[#475569]'
           }`}
         >
-          <Phone className="w-5 h-5 text-[#D92D20]" />
-          <span>Help 112</span>
+          <Phone className="w-4 h-4 text-[#D92D20]" />
+          <span>112 Help</span>
         </button>
       </nav>
     </div>

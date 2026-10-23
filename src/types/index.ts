@@ -49,4 +49,4 @@ export interface HelplineItem {
   isPrimary?: boolean;
 }
 
-export type ActiveTab = 'atlas' | 'notices' | 'wanted' | 'emergency' | 'sources' | 'about' | 'police_triage';
+export type ActiveTab = 'overview' | 'atlas' | 'notices' | 'wanted' | 'reports' | 'emergency' | 'sources' | 'about' | 'police_triage';
